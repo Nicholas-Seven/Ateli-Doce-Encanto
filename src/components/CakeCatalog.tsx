@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { CakeProduct } from '../types';
 import { formatBRL } from '../utils/masks';
-import { Plus, Check, ShieldCheck, Sparkles } from 'lucide-react';
+import { Plus, Check, Sparkles } from 'lucide-react';
 
 interface CakeCatalogProps {
   products: CakeProduct[];
   onAddToCart: (product: CakeProduct, quantity: number) => void;
-  openSecurityPanel: () => void;
 }
 
 export const CakeCatalog: React.FC<CakeCatalogProps> = ({
   products,
-  onAddToCart,
-  openSecurityPanel
+  onAddToCart
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
   const [quantities, setQuantities] = useState<{ [id: number]: number }>({});
@@ -55,15 +53,6 @@ export const CakeCatalog: React.FC<CakeCatalogProps> = ({
           <p className="text-amber-100/90 text-base sm:text-lg leading-relaxed mb-6 font-light">
             Massa aveludada, recheios fartos e finalizações impecáveis. Cada bolo é preparado sob encomenda com o mais alto padrão gastronômico.
           </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={openSecurityPanel}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 text-amber-900 text-sm font-semibold hover:bg-amber-100 transition-all shadow-md"
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-700" />
-              Ver os 7 Padrões de Segurança Ativos
-            </button>
-          </div>
         </div>
         
         {/* Detalhe decorativo suave */}

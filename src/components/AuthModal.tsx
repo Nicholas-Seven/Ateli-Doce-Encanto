@@ -51,7 +51,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (!nome.trim() || !email.trim() || !cpf.trim() || !telefone.trim() || !senha.trim()) {
       setNotification({
         type: 'error',
-        message: '⚠️ Padrão [Campos Obrigatórios]: Todos os campos são mandatórios para garantir consistência.'
+        message: 'Preencha todos os campos para continuar.'
       });
       return;
     }
@@ -59,7 +59,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (cpf.length < 14) {
       setNotification({
         type: 'error',
-        message: '⚠️ Padrão [Máscara de Entrada]: O CPF deve conter 11 dígitos no formato 000.000.000-00.'
+        message: 'Confira o CPF informado. Use o formato 000.000.000-00.'
       });
       return;
     }
@@ -72,7 +72,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     setNotification({
       type: 'success',
-      message: '✅ Cadastro validado com os 4 padrões de segurança do Front-End! Usuário autenticado com sucesso.'
+      message: 'Cadastro realizado com sucesso.'
     });
   };
 
@@ -84,7 +84,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     if (!loginEmail.trim() || !loginSenha.trim()) {
       setNotification({
         type: 'error',
-        message: '⚠️ Padrão [Campos Obrigatórios]: Informe seu e-mail e senha cadastrados.'
+        message: 'Informe seu e-mail e senha para continuar.'
       });
       return;
     }
@@ -113,15 +113,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <p className="text-stone-600 mb-6 text-sm">
             Você está autenticado com o e-mail: <strong className="text-amber-800">{currentUser.email}</strong>
           </p>
-
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/60 mb-6 text-left text-xs space-y-1.5 text-stone-700">
-            <span className="font-bold text-amber-900 block text-sm mb-1">
-              🛡️ Segurança Ativa nesta Sessão:
-            </span>
-            <p>✓ Entradas formatadas com máscaras de CPF e Telefone</p>
-            <p>✓ Verificação estrita de limites de caracteres e campos obrigatórios</p>
-            <p>✓ Pedidos com recálculo e integridade no servidor</p>
-          </div>
 
           <div className="flex items-center justify-center gap-4">
             <button
@@ -185,7 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="mb-6">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-semibold mb-2">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-            4 Padrões de Segurança do Front Ativos
+            Seus dados são tratados com segurança
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
             {isRegisterMode ? 'Cadastro de Cliente da Doceria' : 'Acesse sua Conta'}
@@ -236,9 +227,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 placeholder="Ex: Maria Carolina da Silva"
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 text-stone-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-600 focus:border-transparent transition-all"
               />
-              <p className="text-xs text-stone-400 mt-1">
-                🛡️ Padrão 1 & 2: Previne estouro de buffer e garante consistência do nome.
-              </p>
             </div>
 
             {/* Campo 2: E-mail */}
@@ -262,9 +250,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 placeholder="exemplo@email.com"
                 className="w-full px-4 py-3 rounded-xl border border-stone-200 text-stone-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-600 focus:border-transparent transition-all"
               />
-              <p className="text-xs text-stone-400 mt-1">
-                🛡️ Padrão 4: O tipo <code>email</code> aciona validação nativa de formato antes do envio.
-              </p>
             </div>
 
             {/* Linha dupla: CPF e Telefone */}
@@ -291,9 +276,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="000.000.000-00"
                   className="w-full px-4 py-3 rounded-xl border border-stone-200 text-stone-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-600 focus:border-transparent font-mono transition-all"
                 />
-                <p className="text-xs text-stone-400 mt-1">
-                  🛡️ Padrão 3: Máscara automática impede letras e símbolos indevidos.
-                </p>
               </div>
 
               {/* Campo 4: Telefone com Máscara */}
@@ -317,9 +299,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="(00) 00000-0000"
                   className="w-full px-4 py-3 rounded-xl border border-stone-200 text-stone-900 text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-600 focus:border-transparent font-mono transition-all"
                 />
-                <p className="text-xs text-stone-400 mt-1">
-                  🛡️ Padrão 3: Máscara padroniza formato para comunicação de entregas.
-                </p>
               </div>
 
             </div>
@@ -353,7 +332,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               type="submit"
               className="w-full py-3.5 px-6 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg mt-4"
             >
-              Criar Conta com Validação de Segurança
+              Criar Minha Conta
             </button>
           </form>
         ) : (
@@ -412,7 +391,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               type="submit"
               className="w-full py-3.5 px-6 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg mt-4"
             >
-              Entrar na Doceria
+              Entrar na Minha Conta
             </button>
           </form>
         )}

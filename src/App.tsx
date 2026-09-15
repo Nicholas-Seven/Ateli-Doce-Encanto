@@ -5,12 +5,10 @@ import { Header } from './components/Header';
 import { CakeCatalog } from './components/CakeCatalog';
 import { AuthModal } from './components/AuthModal';
 import { CartDrawer } from './components/CartDrawer';
-import { SecurityStandardsModal } from './components/SecurityStandardsModal';
-import { PythonArchitectureViewer } from './components/PythonArchitectureViewer';
-import { ShieldCheck, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'catalog' | 'auth' | 'security' | 'python'>('catalog');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'auth'>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{ nome: string; email: string } | null>(null);
@@ -53,22 +51,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 font-sans flex flex-col selection:bg-amber-200 selection:text-amber-900">
       
-      {/* Barra de Notificação Superior com Status dos 7 Padrões */}
-      <aside aria-label="Aviso de Segurança" className="bg-amber-950 text-amber-100 text-xs py-2 px-4 text-center border-b border-amber-900">
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-wrap">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-          <span className="font-medium">
-            Arquitetura ativa: Python (Flask) + React + PostgreSQL | Tríade CID & 4 Padrões do Front rigorosamente validados.
-          </span>
-          <button
-            onClick={() => setActiveTab('security')}
-            className="underline text-amber-300 hover:text-white ml-1 font-semibold"
-          >
-            Ver Detalhes
-          </button>
-        </div>
-      </aside>
-
       {/* Header Principal */}
       <Header
         activeTab={activeTab}
@@ -85,7 +67,6 @@ export default function App() {
           <CakeCatalog
             products={CAKE_PRODUCTS}
             onAddToCart={handleAddToCart}
-            openSecurityPanel={() => setActiveTab('security')}
           />
         )}
 
@@ -101,16 +82,6 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'security' && (
-          <SecurityStandardsModal
-            onNavigateToAuth={() => setActiveTab('auth')}
-            onNavigateToCatalog={() => setActiveTab('catalog')}
-          />
-        )}
-
-        {activeTab === 'python' && (
-          <PythonArchitectureViewer />
-        )}
       </main>
 
       {/* Drawer do Carrinho com Verificação de Integridade */}
@@ -129,7 +100,7 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-stone-800">
             <div>
               <h4 className="text-xl font-serif font-bold text-amber-100 mb-2">
-                Doceria de Bolos Artesanais
+                Ateliê Doce Encanto
               </h4>
               <p className="text-xs text-stone-400 leading-relaxed">
                 Bolos com ingredientes selecionados, confeitaria afetiva e excelência em cada detalhe.
@@ -138,14 +109,12 @@ export default function App() {
 
             <div>
               <h5 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-                Conformidade de Segurança
+                Atendimento
               </h5>
               <ul className="text-xs text-stone-400 space-y-1">
-                <li>• Limite de Caracteres (Buffer Overflow Protection)</li>
-                <li>• Campos Obrigatórios & Validação de Estado</li>
-                <li>• Máscaras de Entrada (CPF / Telefone)</li>
-                <li>• Tipagem Segura de Inputs HTML5</li>
-                <li>• Tríade CID: Confidencialidade, Integridade e Disponibilidade</li>
+                <li>• Encomendas sob medida</li>
+                <li>• Ingredientes selecionados</li>
+                <li>• Atendimento para momentos especiais</li>
               </ul>
             </div>
 
@@ -166,7 +135,7 @@ export default function App() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
-            <p>© {new Date().getFullYear()} Doceria de Bolos. Todos os direitos reservados.</p>
+            <p>© {new Date().getFullYear()} Ateliê Doce Encanto. Todos os direitos reservados.</p>
             <p className="flex items-center gap-1">
               Feito com <Heart className="w-3 h-3 text-rose-500 fill-rose-500" /> e segurança de dados.
             </p>

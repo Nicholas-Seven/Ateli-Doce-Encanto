@@ -1,9 +1,9 @@
 import React from 'react';
-import { Cake, ShoppingBag, ShieldCheck, User, FolderTree } from 'lucide-react';
+import { Cake, ShoppingBag, User } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'catalog' | 'auth' | 'security' | 'python';
-  setActiveTab: (tab: 'catalog' | 'auth' | 'security' | 'python') => void;
+  activeTab: 'catalog' | 'auth';
+  setActiveTab: (tab: 'catalog' | 'auth') => void;
   cartCount: number;
   openCart: () => void;
   currentUser: { nome: string; email: string } | null;
@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div>
               <span className="text-xl font-serif font-bold text-stone-900 tracking-tight block leading-tight">
-                Doceria de Bolos
+                Ateliê Doce Encanto
               </span>
               <span className="text-xs font-sans text-amber-800 font-medium tracking-wide block">
                 Confeitaria Artesanal
@@ -68,31 +68,6 @@ export const Header: React.FC<HeaderProps> = ({
               {currentUser ? `Minha Conta (${currentUser.nome.split(' ')[0]})` : 'Login & Cadastro'}
             </button>
 
-            <button
-              id="nav-security"
-              onClick={() => setActiveTab('security')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'security'
-                  ? 'bg-amber-700 text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-amber-200/50'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>7 Padrões de Segurança</span>
-            </button>
-
-            <button
-              id="nav-python"
-              onClick={() => setActiveTab('python')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'python'
-                  ? 'bg-amber-700 text-white shadow-xs'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-amber-200/50'
-              }`}
-            >
-              <FolderTree className="w-4 h-4 text-amber-700" />
-              <span>Arquitetura Python</span>
-            </button>
           </nav>
 
           {/* Ações Direitas: Usuário & Carrinho */}
@@ -144,18 +119,6 @@ export const Header: React.FC<HeaderProps> = ({
             className={`px-2 py-1 rounded-lg ${activeTab === 'auth' ? 'text-amber-800 font-bold bg-amber-200/60' : 'text-stone-600'}`}
           >
             {currentUser ? 'Perfil' : 'Conta'}
-          </button>
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`px-2 py-1 rounded-lg ${activeTab === 'security' ? 'text-amber-800 font-bold bg-amber-200/60' : 'text-stone-600'}`}
-          >
-            Segurança (7)
-          </button>
-          <button
-            onClick={() => setActiveTab('python')}
-            className={`px-2 py-1 rounded-lg ${activeTab === 'python' ? 'text-amber-800 font-bold bg-amber-200/60' : 'text-stone-600'}`}
-          >
-            Backend Flask
           </button>
         </div>
       </div>
