@@ -1,0 +1,6 @@
+{
+  "name": "Doceria de Bolos",
+  "description": "Site de doceria artesanal com catálogo de bolos, autenticação de clientes, arquitetura Flask com PostgreSQL e implementação dos 7 padrões de segurança (Front e Back-End CID).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
