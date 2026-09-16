@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { CartItem, OrderIntegrityResult } from '../types';
+import { CartItem } from '../types';
 import { formatBRL } from '../utils/masks';
-import { SecurityEngine, BackendResponse } from '../services/securityEngine';
-import { X, Trash2, ShieldCheck, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { checkoutOrder, CheckoutResult } from '../services/api';
+import { X, Trash2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -21,38 +21,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onClearCart
 }) => {
-  const [simulateTamper, setSimulateTamper] = useState<boolean>(false);
-  const [tamperedPriceInput, setTamperedPriceInput] = useState<number>(5.00);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [orderResult, setOrderResult] = useState<OrderIntegrityResult | null>(null);
+  const [orderResult, setOrderResult] = useState<CheckoutResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const clientSubtotal = cart.reduce((acc, item) => acc + (item.produto.preco * item.quantidade), 0);
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     setIsProcessing(true);
     setErrorMessage(null);
     setOrderResult(null);
 
-    // Se estiver simulando tentativa de adulteração de preço no front:
-    const totalSent = simulateTamper ? tamperedPriceInput : clientSubtotal;
-
-    setTimeout(() => {
-      const response: BackendResponse<OrderIntegrityResult> = SecurityEngine.processOrderWithIntegrity(
-        cart,
-        totalSent
-      );
-
+    try {
+      const result = await checkoutOrder(cart, clientSubtotal);
+      setOrderResult(result);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Falha ao processar pedido.');
+    } finally {
       setIsProcessing(false);
-
-      if (response.status === 200 && response.data) {
-        setOrderResult(response.data);
-      } else {
-        setErrorMessage(response.error || 'Falha ao processar pedido.');
-      }
-    }, 600);
+    }
   };
 
   return (
@@ -141,79 +130,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             ))
           )}
 
-          {/* SIMULAÇÃO DO PADRÃO CID: INTEGRIDADE */}
-          {cart.length > 0 && (
-            <div className="p-4 rounded-2xl bg-amber-100/70 border border-amber-300/80 space-y-3 mt-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                  Padrão de Integridade (Back-End)
-                </span>
-                <span className="text-[10px] bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md font-semibold">
-                  Tríade CID
-                </span>
-              </div>
-              <p className="text-xs text-stone-700 leading-relaxed">
-                O backend <strong>nunca confia no preço total enviado pelo front</strong>. Ele recalcula tudo com base no banco de dados.
-              </p>
-
-              <label className="flex items-center gap-2 cursor-pointer pt-1">
-                <input
-                  type="checkbox"
-                  checked={simulateTamper}
-                  onChange={e => setSimulateTamper(e.target.checked)}
-                  className="rounded-sm text-amber-700 focus:ring-amber-600 w-4 h-4"
-                />
-                <span className="text-xs font-medium text-stone-800">
-                  Simular tentativa de adulterar preço no front (ataque cliente)
-                </span>
-              </label>
-
-              {simulateTamper && (
-                <div className="p-3 bg-white rounded-xl border border-amber-300 space-y-2">
-                  <span className="text-[11px] text-rose-700 font-semibold block">
-                    Simulação: O cliente tenta pagar apenas:
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-stone-700">R$</span>
-                    <input
-                      type="number" // Tipagem de inputs
-                      step="0.50"
-                      min={0.10}
-                      value={tamperedPriceInput}
-                      onChange={e => setTamperedPriceInput(parseFloat(e.target.value) || 1)}
-                      className="w-24 px-2 py-1 text-sm font-bold border border-stone-300 rounded-md text-rose-600"
-                    />
-                    <span className="text-[10px] text-stone-500">
-                      (em vez de {formatBRL(clientSubtotal)})
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Resultado do Pedido com Integridade Validada */}
           {orderResult && (
             <div className="p-4 rounded-2xl bg-white border border-emerald-300 shadow-sm space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                <span>Resultado da Validação no Servidor</span>
+                <span>Pedido confirmado</span>
               </div>
               <p className="text-xs text-stone-700 leading-relaxed">
-                {orderResult.mensagem}
+                Seu pedido foi registrado com sucesso no banco de dados.
               </p>
-              <div className="p-2.5 rounded-xl bg-stone-50 text-xs font-mono space-y-1 text-stone-600">
-                <div className="flex justify-between">
-                  <span>Preço enviado pelo front:</span>
-                  <span className={orderResult.padraoIntegridade.tentativaAdulteracaoFront ? 'text-rose-600 font-bold' : ''}>
-                    {formatBRL(orderResult.padraoIntegridade.valorEnviadoPeloFront)}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold text-emerald-700">
-                  <span>Preço oficial recalculado pelo Backend:</span>
-                  <span>{formatBRL(orderResult.padraoIntegridade.valorRealCalculadoBackend)}</span>
-                </div>
+              <div className="flex justify-between rounded-xl bg-stone-50 p-2.5 text-xs text-stone-600">
+                <span>Número do pedido</span>
+                <strong className="text-stone-900">#{orderResult.pedido_id}</strong>
               </div>
             </div>
           )}
@@ -237,16 +165,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             </div>
 
             <button
-              id="btn-checkout-integridade"
+              id="btn-checkout"
               onClick={handleCheckout}
               disabled={isProcessing}
               className="w-full py-3.5 px-4 rounded-xl bg-amber-700 hover:bg-amber-800 disabled:opacity-50 text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
             >
               {isProcessing ? (
-                <span>Validando Integridade no Servidor...</span>
+                <span>Finalizando pedido...</span>
               ) : (
                 <>
-                  <span>Finalizar Pedido com Recálculo do Servidor</span>
+                  <span>Finalizar pedido</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -256,7 +184,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button onClick={onClearCart} className="hover:text-rose-600">
                 Limpar Pedido
               </button>
-              <span className="text-[11px]">🛡️ Protegido contra Adulteração</span>
+              <span className="text-[11px]">Pedido processado com segurança</span>
             </div>
           </div>
         )}

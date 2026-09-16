@@ -133,20 +133,6 @@ export default function App() {
               </ul>
             </div>
 
-            <div>
-              <h5 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
-                Backend & Banco de Dados
-              </h5>
-              <p className="text-xs text-stone-400 leading-relaxed mb-2">
-                Backend modular em Python Flask (localizado em <code>/sistema</code>) pronto para ser conectado ao PostgreSQL.
-              </p>
-              <button
-                onClick={() => setActiveTab('python')}
-                className="text-xs text-amber-300 hover:text-amber-200 font-semibold underline"
-              >
-                Abrir explorador de código da arquitetura
-              </button>
-            </div>
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-4">
