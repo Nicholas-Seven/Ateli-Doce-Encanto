@@ -1,7 +1,7 @@
 import hashlib
 import re
-from src.models.user import User
-from src.repositories.user_repository import UserRepository
+from src.backend.models.user import User
+from src.backend.repositories.user_repository import UserRepository
 
 class AuthService:
     """

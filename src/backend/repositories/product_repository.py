@@ -1,5 +1,5 @@
 from typing import List, Optional
-from src.models.product import Product
+from src.backend.models.product import Product
 
 class ProductRepository:
     """

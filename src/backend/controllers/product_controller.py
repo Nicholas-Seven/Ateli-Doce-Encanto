@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from src.repositories.product_repository import ProductRepository
-from src.services.order_service import OrderService
+from src.backend.repositories.product_repository import ProductRepository
+from src.backend.services.order_service import OrderService
 
 product_bp = Blueprint("products", __name__)
 product_repo = ProductRepository()

@@ -1,5 +1,5 @@
 from typing import Optional, List
-from src.models.user import User
+from src.backend.models.user import User
 
 class UserRepository:
     """

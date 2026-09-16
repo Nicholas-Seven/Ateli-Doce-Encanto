@@ -3,8 +3,8 @@ from collections import defaultdict
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config.settings import settings
-from src.controllers.auth_controller import auth_bp
-from src.controllers.product_controller import product_bp
+from src.backend.controllers.auth_controller import auth_bp
+from src.backend.controllers.product_controller import product_bp
 
 # Controle em memória para Disponibilidade (Rate Limiting simples por IP)
 request_history = defaultdict(list)

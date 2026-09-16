@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from src.repositories.product_repository import ProductRepository
+from src.backend.repositories.product_repository import ProductRepository
 
 class OrderService:
     """

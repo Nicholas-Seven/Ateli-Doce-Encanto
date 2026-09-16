@@ -1,20 +1,31 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Ateliê Doce Encanto
 
-# Run and deploy your AI Studio app
+Aplicação de confeitaria artesanal com front-end React/Vite e back-end Python/Flask.
 
-This contains everything you need to run your app locally.
+## Arquitetura
 
-View your app in AI Studio: https://ai.studio/apps/610c4b47-b1e7-4052-a2a7-a43abe7a608b
+```text
+src/
+├── frontend/    # React, componentes, catálogo e carrinho
+└── backend/     # Flask, controllers, services, models e repositories
+```
 
-## Run Locally
+As configurações compartilhadas ficam em `config/`, o schema do banco em `assets/`, os testes em `tests/` e a documentação em `docs/`.
 
-**Prerequisites:**  Node.js
+## Front-end
 
+```bash
+npm install
+npm run dev
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Back-end
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python -m src.backend.main
+```
+
+O back-end usa a variável `DATABASE_URL` definida no `.env` para a futura integração com PostgreSQL.

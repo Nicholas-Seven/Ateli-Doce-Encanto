@@ -1,6 +1,6 @@
 import pytest
-from src.main import create_app
-from src.models.product import Product
+from src.backend.main import create_app
+from src.backend.models.product import Product
 
 @pytest.fixture
 def client():
