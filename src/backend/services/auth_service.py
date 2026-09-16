@@ -1,5 +1,5 @@
-import hashlib
-import re
+from werkzeug.security import check_password_hash, generate_password_hash
+
 from src.backend.models.user import User
 from src.backend.repositories.user_repository import UserRepository
 
@@ -12,8 +12,8 @@ class AuthService:
         self.user_repo = user_repository
 
     def _hash_password(self, password: str) -> str:
-        """Gera hash SHA-256 da senha."""
-        return hashlib.sha256(password.encode("utf-8")).hexdigest()
+        """Gera um hash seguro e com salt para a senha."""
+        return generate_password_hash(password)
 
     def register(self, nome: str, email: str, cpf: str, telefone: str, senha: str) -> User:
         """Registra novo usuário validando consistência básica."""
@@ -47,7 +47,7 @@ class AuthService:
         if not user:
             raise ValueError("Credenciais inválidas.")
 
-        if user.senha_hash != self._hash_password(senha):
+        if not check_password_hash(user.senha_hash, senha):
             raise ValueError("Credenciais inválidas.")
 
         return user

@@ -1,4 +1,5 @@
 from typing import List, Dict, Any
+from src.backend.repositories.order_repository import OrderRepository
 from src.backend.repositories.product_repository import ProductRepository
 
 class OrderService:
@@ -11,10 +12,20 @@ class OrderService:
     Ele consulta o catálogo oficial no banco de dados (repositório), busca o valor real
     cadastrado de cada bolo, multiplica pela quantidade e calcula o total autêntico.
     """
-    def __init__(self, product_repository: ProductRepository):
+    def __init__(
+        self,
+        product_repository: ProductRepository,
+        order_repository: OrderRepository,
+    ):
         self.product_repo = product_repository
+        self.order_repo = order_repository
 
-    def calculate_and_checkout(self, items: List[Dict[str, Any]], client_reported_total: float = None) -> Dict[str, Any]:
+    def calculate_and_checkout(
+        self,
+        items: List[Dict[str, Any]],
+        client_reported_total: float = None,
+        user_id: int = None,
+    ) -> Dict[str, Any]:
         """
         Calcula o total oficial no servidor e detecta eventuais divergências/adulterações no Front-End.
         """
@@ -24,6 +35,9 @@ class OrderService:
         for item in items:
             product_id = item.get("product_id")
             quantity = int(item.get("quantity", 1))
+
+            if quantity < 1:
+                raise ValueError("A quantidade de cada produto deve ser maior que zero.")
             
             # Busca o produto autêntico no banco de dados
             product = self.product_repo.find_by_id(product_id)
@@ -51,8 +65,11 @@ class OrderService:
             if abs(divergence_amount) > 0.01:
                 tampering_detected = True
 
+        order_id = self.order_repo.create(official_total, official_items, user_id)
+
         return {
             "status": "sucesso",
+            "pedido_id": order_id,
             "padrao_integridade": {
                 "executado_no_servidor": True,
                 "calculo_oficial_baseado_no_banco": True,

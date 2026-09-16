@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { CAKE_PRODUCTS } from './data/cakeProducts';
+import React, { useEffect, useState } from 'react';
 import { CakeProduct, CartItem } from './types';
+import { fetchProducts } from './services/api';
 import { Header } from './components/Header';
 import { CakeCatalog } from './components/CakeCatalog';
 import { AuthModal } from './components/AuthModal';
@@ -10,8 +10,16 @@ import { Heart } from 'lucide-react';
 export default function App() {
   const [activeTab, setActiveTab] = useState<'catalog' | 'auth'>('catalog');
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [products, setProducts] = useState<CakeProduct[]>([]);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<{ nome: string; email: string } | null>(null);
+
+  useEffect(() => {
+    fetchProducts()
+      .then(setProducts)
+      .catch(error => setCatalogError(error.message));
+  }, []);
 
   // Manipulação de Carrinho
   const handleAddToCart = (product: CakeProduct, quantity: number) => {
@@ -64,10 +72,17 @@ export default function App() {
       {/* Conteúdo Principal de acordo com a aba ativa */}
       <main className="flex-1">
         {activeTab === 'catalog' && (
-          <CakeCatalog
-            products={CAKE_PRODUCTS}
-            onAddToCart={handleAddToCart}
-          />
+          <>
+            <CakeCatalog
+              products={products}
+              onAddToCart={handleAddToCart}
+            />
+            {catalogError && (
+              <p className="max-w-7xl mx-auto px-4 pb-8 text-center text-sm text-rose-700">
+                {catalogError} Verifique se a API Flask está em execução.
+              </p>
+            )}
+          </>
         )}
 
         {activeTab === 'auth' && (
