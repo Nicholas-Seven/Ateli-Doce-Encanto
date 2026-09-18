@@ -41,3 +41,19 @@ def test_padrao_confidencialidade_respostas_de_erro(client):
     raw_text = response.get_data(as_text=True)
     assert "SECRET_KEY" not in raw_text
     assert "DATABASE_URL" not in raw_text
+
+
+def test_checkout_preflight_sets_cors_headers(client):
+    """Garante que o browser receba headers CORS corretos no preflight do checkout."""
+    response = client.options(
+        "/api/pedidos/checkout",
+        headers={
+            "Origin": "https://atelie-doce-encanto.vercel.app",
+            "Access-Control-Request-Method": "POST"
+        }
+    )
+
+    assert response.status_code == 200
+    assert response.headers.get("Access-Control-Allow-Origin") == "https://atelie-doce-encanto.vercel.app"
+    assert "POST" in response.headers.get("Access-Control-Allow-Methods", "")
+    assert "Content-Type" in response.headers.get("Access-Control-Allow-Headers", "")

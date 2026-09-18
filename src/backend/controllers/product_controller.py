@@ -89,10 +89,12 @@ def checkout():
     Recebe itens do cliente e calcula o valor real no servidor.
     """
     if request.method == "OPTIONS":
+        origin = request.headers.get('Origin')
         response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        response.headers['Access-Control-Allow-Origin'] = origin or '*'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
         return response, 200
 
     data = request.get_json() or {}
