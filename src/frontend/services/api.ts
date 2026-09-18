@@ -1,7 +1,12 @@
 import { CakeProduct } from '../types';
 import { CartItem } from '../types';
 
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/+$/, '');
+const rawBaseUrl = String(import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+const cleanBaseUrl = rawBaseUrl
+  .replace(/[\]\[()]+/g, '')
+  .replace(/\/+$/, '');
+
+const API_URL = cleanBaseUrl;
 
 interface ApiProduct {
   id: number;
@@ -26,7 +31,8 @@ export interface CheckoutResult {
 }
 
 export async function fetchProducts(): Promise<CakeProduct[]> {
-  const response = await fetch(`${API_URL}/products`);
+  const productUrl = `${API_URL}/api/products`;
+  const response = await fetch(productUrl);
 
   if (!response.ok) {
     throw new Error('Não foi possível carregar o catálogo.');
@@ -47,7 +53,8 @@ export async function fetchProducts(): Promise<CakeProduct[]> {
 }
 
 export async function checkoutOrder(cart: CartItem[], clientTotal: number): Promise<CheckoutResult> {
-  const response = await fetch(`${API_URL}/pedidos/checkout`, {
+  const checkoutUrl = `${API_URL}/api/pedidos/checkout`;
+  const response = await fetch(checkoutUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
