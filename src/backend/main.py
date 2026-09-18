@@ -1,7 +1,14 @@
 import os
+import sys
+from pathlib import Path
 
 from flask import Flask, jsonify
 from flask_cors import CORS
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from src.backend.controllers.product_controller import product_bp
 from src.backend.controllers.auth_controller import auth_bp
 

@@ -2,7 +2,10 @@ from contextlib import contextmanager
 
 import psycopg2
 
-from src.backend.config.settings import settings
+try:
+    from config.settings import settings
+except ModuleNotFoundError:  # pragma: no cover - fallback for package-style runs
+    from src.backend.config.settings import settings
 
 
 @contextmanager
