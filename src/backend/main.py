@@ -15,7 +15,14 @@ from src.backend.controllers.auth_controller import auth_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(
+        app,
+        resources={
+            r"/api/*": {"origins": "*"},
+            r"/*": {"origins": "*"}
+        },
+        supports_credentials=True
+    )
 
     app.register_blueprint(product_bp, url_prefix='/api')
     app.register_blueprint(auth_bp, url_prefix='/api')
@@ -45,11 +52,12 @@ def create_app():
         }), 500
 
     @app.route('/api/health', methods=['GET'])
+    @app.route('/health', methods=['GET'])
     def health_check():
         return jsonify({
             'status': 'online',
             'servico': 'Doceria de Bolos API (Flask)'
-        })
+        }), 200
 
     return app
 
