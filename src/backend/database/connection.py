@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 import psycopg2
 
-from config.settings import settings
+from src.backend.config.settings import settings
 
 
 @contextmanager
