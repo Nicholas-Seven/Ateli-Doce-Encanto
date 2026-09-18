@@ -12,7 +12,7 @@ order_service = OrderService(product_repo, OrderRepository())
 
 
 def _find_products_table():
-    for table_name in ("produtos", "products"):
+    for table_name in ("public.produtos", "produtos", "public.products", "products"):
         try:
             with get_connection() as conn:
                 with conn.cursor() as cursor:
@@ -20,7 +20,7 @@ def _find_products_table():
             return table_name
         except Exception:
             continue
-    raise RuntimeError("Tabela de produtos não encontrada em 'produtos' nem 'products'.")
+    raise RuntimeError("Tabela de produtos não encontrada em 'public.produtos', 'produtos', 'public.products' nem 'products'.")
 
 
 @product_bp.route("/api/products", methods=["GET", "OPTIONS"])
