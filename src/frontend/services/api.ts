@@ -26,7 +26,7 @@ export interface CheckoutResult {
 }
 
 export async function fetchProducts(): Promise<CakeProduct[]> {
-  const response = await fetch(`${API_URL}/produtos`);
+  const response = await fetch(`${API_URL}/products`);
 
   if (!response.ok) {
     throw new Error('Não foi possível carregar o catálogo.');

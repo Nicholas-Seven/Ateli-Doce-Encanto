@@ -6,7 +6,7 @@ auth_bp = Blueprint("auth", __name__)
 user_repo = UserRepository()
 auth_service = AuthService(user_repo)
 
-@auth_bp.route("/api/auth/cadastro", methods=["POST"])
+@auth_bp.route("/auth/cadastro", methods=["POST"])
 def register():
     data = request.get_json() or {}
     try:
@@ -30,7 +30,7 @@ def register():
     except ValueError as e:
         return jsonify({"erro": str(e)}), 400
 
-@auth_bp.route("/api/auth/login", methods=["POST"])
+@auth_bp.route("/auth/login", methods=["POST"])
 def login():
     data = request.get_json() or {}
     try:
