@@ -22,8 +22,8 @@ def create_app():
         supports_credentials=True
     )
 
-    app.register_blueprint(product_bp, url_prefix='/api')
-    app.register_blueprint(auth_bp, url_prefix='/api')
+    app.register_blueprint(product_bp)
+    app.register_blueprint(auth_bp)
 
     @app.after_request
     def after_request(response):

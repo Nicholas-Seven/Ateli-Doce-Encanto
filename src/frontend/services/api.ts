@@ -1,10 +1,11 @@
 import { CakeProduct } from '../types';
 import { CartItem } from '../types';
 
-const rawBaseUrl = String(import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
+const rawBaseUrl = String(import.meta.env.VITE_API_URL || 'http://localhost:5000');
 const cleanBaseUrl = rawBaseUrl
   .replace(/[\]\[()]+/g, '')
-  .replace(/\/+$/, '');
+  .replace(/\/+$/, '')
+  .replace(/\/api$/i, '');
 
 const API_URL = cleanBaseUrl;
 
