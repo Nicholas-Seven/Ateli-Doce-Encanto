@@ -23,10 +23,17 @@ def _find_products_table():
     raise RuntimeError("Tabela de produtos não encontrada em 'produtos' nem 'products'.")
 
 
-@product_bp.route("/api/products", methods=["GET"])
-@product_bp.route("/products", methods=["GET"])
+@product_bp.route("/api/products", methods=["GET", "OPTIONS"])
+@product_bp.route("/products", methods=["GET", "OPTIONS"])
 def list_products():
     """Retorna o catálogo oficial de bolos em JSON válido."""
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        return response, 200
+
     try:
         table_name = _find_products_table()
 
@@ -67,20 +74,27 @@ def list_products():
         }), 500
 
 
-@product_bp.route("/api/produtos", methods=["GET"])
-@product_bp.route("/produtos", methods=["GET"])
+@product_bp.route("/api/produtos", methods=["GET", "OPTIONS"])
+@product_bp.route("/produtos", methods=["GET", "OPTIONS"])
 def list_products_legacy():
     """Compatibilidade com rotas antigas."""
     return list_products()
 
 
-@product_bp.route("/api/pedidos/checkout", methods=["POST"])
-@product_bp.route("/pedidos/checkout", methods=["POST"])
+@product_bp.route("/api/pedidos/checkout", methods=["POST", "OPTIONS"])
+@product_bp.route("/pedidos/checkout", methods=["POST", "OPTIONS"])
 def checkout():
     """
     Endpoint para finalizar pedido aplicando o padrão de INTEGRIDADE.
     Recebe itens do cliente e calcula o valor real no servidor.
     """
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+        return response, 200
+
     data = request.get_json() or {}
     items = data.get("itens", [])
     client_total = data.get("total_cliente")
