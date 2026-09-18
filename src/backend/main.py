@@ -1,5 +1,7 @@
 import os
 import sys
+import time
+from collections import defaultdict
 from pathlib import Path
 
 from flask import Flask, jsonify, request
@@ -15,6 +17,29 @@ from src.backend.controllers.auth_controller import auth_bp
 
 def create_app():
     app = Flask(__name__)
+
+    request_log = defaultdict(list)
+
+    @app.before_request
+    def enforce_rate_limit():
+        client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
+        now = time.time()
+        window_seconds = 60
+        limit = int(os.getenv('RATE_LIMIT_REQUESTS_PER_MINUTE', 60))
+
+        requests = request_log[client_ip]
+        requests[:] = [ts for ts in requests if now - ts < window_seconds]
+
+        if len(requests) >= limit:
+            response = jsonify({
+                'status': 'erro',
+                'padrao_seguranca': 'Disponibilidade',
+                'mensagem': 'Muitas requisições em pouco tempo. Tente novamente mais tarde.'
+            })
+            response.status_code = 429
+            return response
+
+        requests.append(now)
 
     CORS(
         app,

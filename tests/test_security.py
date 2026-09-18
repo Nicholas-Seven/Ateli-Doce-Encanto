@@ -57,3 +57,18 @@ def test_checkout_preflight_sets_cors_headers(client):
     assert response.headers.get("Access-Control-Allow-Origin") == "https://atelie-doce-encanto.vercel.app"
     assert "POST" in response.headers.get("Access-Control-Allow-Methods", "")
     assert "Content-Type" in response.headers.get("Access-Control-Allow-Headers", "")
+
+
+def test_disponibilidade_bloqueia_requisicoes_excessivas(client):
+    """A disponibilidade exige bloqueio de abuso por excesso de requisições."""
+    app = client.application
+    app.config['TESTING'] = True
+
+    for _ in range(60):
+        response = client.get('/api/health')
+        if response.status_code == 429:
+            break
+
+    assert response.status_code == 429
+    data = response.get_json()
+    assert data['padrao_seguranca'] == 'Disponibilidade'
