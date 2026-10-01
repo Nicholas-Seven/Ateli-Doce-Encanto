@@ -3,8 +3,10 @@ import pytest
 from src.backend.main import create_app
 from src.backend.config.settings import settings
 from src.backend.controllers import product_controller
+from src.backend.controllers import auth_controller
 from src.backend.database.connection import _connection_options
 from src.backend.models.product import Product
+from src.backend.models.user import User
 
 @pytest.fixture
 def client():
@@ -52,6 +54,39 @@ def test_checkout_recusa_requisicao_sem_token(client):
     )
 
     assert response.status_code == 401
+
+
+def test_cadastro_nao_retorna_cpf_ou_telefone(client, monkeypatch):
+    user = User(
+        id=1,
+        nome="Pessoa teste",
+        email="pessoa@example.com",
+        cpf="12345678901",
+        telefone="11999990000",
+        senha_hash="hash-de-teste",
+    )
+    monkeypatch.setattr(auth_controller.auth_service, "register", lambda **kwargs: user)
+    monkeypatch.setattr(auth_controller.auth_service, "issue_token", lambda _user: "token-teste")
+
+    response = client.post(
+        "/auth/cadastro",
+        json={
+            "nome": user.nome,
+            "email": user.email,
+            "cpf": user.cpf,
+            "telefone": user.telefone,
+            "senha": "senha-teste",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.get_json()["usuario"] == {
+        "id": 1,
+        "nome": "Pessoa teste",
+        "email": "pessoa@example.com",
+    }
+    assert user.cpf not in response.get_data(as_text=True)
+    assert user.telefone not in response.get_data(as_text=True)
 
 
 def test_conexao_neon_exige_tls():

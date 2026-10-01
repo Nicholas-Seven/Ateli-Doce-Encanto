@@ -23,9 +23,7 @@ def register():
             "usuario": {
                 "id": user.id,
                 "nome": user.nome,
-                "email": user.email,
-                "cpf": user.cpf,
-                "telefone": user.telefone
+                "email": user.email
             }
         }), 201
     except ValueError as e:
