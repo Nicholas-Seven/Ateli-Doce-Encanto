@@ -25,7 +25,7 @@ def create_app():
         client_ip = request.headers.get('X-Forwarded-For', request.remote_addr or 'unknown').split(',')[0].strip()
         now = time.time()
         window_seconds = 60
-        limit = int(os.getenv('RATE_LIMIT_REQUESTS_PER_MINUTE', 60))
+        limit = int(os.getenv('RATE_LIMIT_REQUESTS_PER_MINUTE', 5))
 
         requests = request_log[client_ip]
         requests[:] = [ts for ts in requests if now - ts < window_seconds]

@@ -19,6 +19,7 @@ def register():
         )
         return jsonify({
             "mensagem": "Cadastro realizado com sucesso!",
+            "token": auth_service.issue_token(user),
             "usuario": {
                 "id": user.id,
                 "nome": user.nome,
@@ -40,6 +41,7 @@ def login():
         )
         return jsonify({
             "mensagem": "Login efetuado com sucesso!",
+            "token": auth_service.issue_token(user),
             "usuario": {
                 "id": user.id,
                 "nome": user.nome,

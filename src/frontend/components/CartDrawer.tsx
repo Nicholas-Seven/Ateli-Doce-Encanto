@@ -3,6 +3,7 @@ import { CartItem } from '../types';
 import { formatBRL } from '../utils/masks';
 import { checkoutOrder, CheckoutResult } from '../services/api';
 import { X, Trash2, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { AuthenticatedUser } from '../services/api';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface CartDrawerProps {
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemoveItem: (productId: number) => void;
   onClearCart: () => void;
+  currentUser: AuthenticatedUser | null;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -19,7 +21,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   cart,
   onUpdateQuantity,
   onRemoveItem,
-  onClearCart
+  onClearCart,
+  currentUser
 }) => {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [orderResult, setOrderResult] = useState<CheckoutResult | null>(null);
@@ -35,7 +38,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     setOrderResult(null);
 
     try {
-      const result = await checkoutOrder(cart, clientSubtotal);
+      if (!currentUser) {
+        throw new Error('Entre na sua conta antes de finalizar o pedido.');
+      }
+      const result = await checkoutOrder(cart, clientSubtotal, currentUser.token);
       setOrderResult(result);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Falha ao processar pedido.');

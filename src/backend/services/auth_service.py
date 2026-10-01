@@ -1,5 +1,7 @@
+from itsdangerous import URLSafeTimedSerializer
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from src.backend.config.settings import settings
 from src.backend.models.user import User
 from src.backend.repositories.user_repository import UserRepository
 
@@ -14,6 +16,10 @@ class AuthService:
     def _hash_password(self, password: str) -> str:
         """Gera um hash seguro e com salt para a senha."""
         return generate_password_hash(password)
+
+    def issue_token(self, user: User) -> str:
+        serializer = URLSafeTimedSerializer(settings.SECRET_KEY, salt="doceria-auth-v1")
+        return serializer.dumps({"user_id": user.id})
 
     def register(self, nome: str, email: str, cpf: str, telefone: str, senha: str) -> User:
         """Registra novo usuário validando consistência básica."""

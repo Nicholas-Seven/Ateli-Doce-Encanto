@@ -1,6 +1,8 @@
 import traceback
 
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from flask import Blueprint, jsonify, request
+from src.backend.config.settings import settings
 from src.backend.database.connection import get_connection
 from src.backend.repositories.order_repository import OrderRepository
 from src.backend.repositories.product_repository import ProductRepository
@@ -9,6 +11,7 @@ from src.backend.services.order_service import OrderService
 product_bp = Blueprint("products", __name__)
 product_repo = ProductRepository()
 order_service = OrderService(product_repo, OrderRepository())
+auth_token_serializer = URLSafeTimedSerializer(settings.SECRET_KEY, salt="doceria-auth-v1")
 
 
 def _find_products_table():
@@ -100,7 +103,15 @@ def checkout():
     data = request.get_json() or {}
     items = data.get("itens", [])
     client_total = data.get("total_cliente")
-    user_id = data.get("usuario_id")
+    authorization = request.headers.get("Authorization", "")
+    if not authorization.startswith("Bearer "):
+        return jsonify({"erro": "Entre na sua conta para finalizar o pedido."}), 401
+
+    try:
+        token_data = auth_token_serializer.loads(authorization.removeprefix("Bearer "), max_age=3600)
+        user_id = int(token_data["user_id"])
+    except (BadSignature, SignatureExpired, KeyError, TypeError, ValueError):
+        return jsonify({"erro": "Sessão inválida ou expirada. Entre novamente."}), 401
 
     if not items:
         return jsonify({"erro": "Nenhum item informado no carrinho"}), 400

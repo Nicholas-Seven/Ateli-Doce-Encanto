@@ -37,6 +37,98 @@ CREATE TABLE IF NOT EXISTS itens_pedido (
     preco_unitario NUMERIC(10, 2) NOT NULL -- Preço capturado no momento do pedido via banco
 );
 
+ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pedidos FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS pedidos_do_usuario_autenticado ON pedidos;
+CREATE POLICY pedidos_do_usuario_autenticado ON pedidos
+FOR ALL
+USING (usuario_id = NULLIF(current_setting('app.user_id', true), '')::INTEGER)
+WITH CHECK (usuario_id = NULLIF(current_setting('app.user_id', true), '')::INTEGER);
+
+ALTER TABLE itens_pedido ENABLE ROW LEVEL SECURITY;
+ALTER TABLE itens_pedido FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS itens_dos_pedidos_do_usuario ON itens_pedido;
+CREATE POLICY itens_dos_pedidos_do_usuario ON itens_pedido
+FOR ALL
+USING (
+    EXISTS (
+        SELECT 1
+        FROM pedidos
+        WHERE pedidos.id = itens_pedido.pedido_id
+    )
+)
+WITH CHECK (
+    EXISTS (
+        SELECT 1
+        FROM pedidos
+        WHERE pedidos.id = itens_pedido.pedido_id
+    )
+);
+
+CREATE TABLE IF NOT EXISTS auditoria_alteracoes (
+    id BIGSERIAL PRIMARY KEY,
+    tabela TEXT NOT NULL,
+    registro_id TEXT,
+    operacao TEXT NOT NULL CHECK (operacao IN ('INSERT', 'UPDATE', 'DELETE')),
+    usuario_banco TEXT NOT NULL DEFAULT session_user,
+    colunas_alteradas TEXT[] NOT NULL DEFAULT '{}',
+    ocorrido_em TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION registrar_auditoria_alteracao()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    registro_antigo JSONB;
+    registro_novo JSONB;
+    id_registro TEXT;
+    colunas TEXT[];
+BEGIN
+    IF TG_OP <> 'INSERT' THEN
+        registro_antigo := to_jsonb(OLD);
+    END IF;
+
+    IF TG_OP <> 'DELETE' THEN
+        registro_novo := to_jsonb(NEW);
+    END IF;
+
+    id_registro := COALESCE(registro_novo ->> 'id', registro_antigo ->> 'id');
+
+    SELECT COALESCE(array_agg(coluna ORDER BY coluna), '{}')
+    INTO colunas
+    FROM (
+        SELECT jsonb_object_keys(COALESCE(registro_antigo, '{}'::jsonb)) AS coluna
+        UNION
+        SELECT jsonb_object_keys(COALESCE(registro_novo, '{}'::jsonb)) AS coluna
+    ) AS nomes_colunas
+    WHERE registro_antigo -> coluna IS DISTINCT FROM registro_novo -> coluna;
+
+    INSERT INTO auditoria_alteracoes (tabela, registro_id, operacao, colunas_alteradas)
+    VALUES (TG_TABLE_NAME, id_registro, TG_OP, colunas);
+
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS auditoria_usuarios ON usuarios;
+CREATE TRIGGER auditoria_usuarios
+AFTER INSERT OR UPDATE OR DELETE ON usuarios
+FOR EACH ROW EXECUTE FUNCTION registrar_auditoria_alteracao();
+
+DROP TRIGGER IF EXISTS auditoria_pedidos ON pedidos;
+CREATE TRIGGER auditoria_pedidos
+AFTER INSERT OR UPDATE OR DELETE ON pedidos
+FOR EACH ROW EXECUTE FUNCTION registrar_auditoria_alteracao();
+
+DROP TRIGGER IF EXISTS auditoria_itens_pedido ON itens_pedido;
+CREATE TRIGGER auditoria_itens_pedido
+AFTER INSERT OR UPDATE OR DELETE ON itens_pedido
+FOR EACH ROW EXECUTE FUNCTION registrar_auditoria_alteracao();
+
 -- Carga inicial dos bolos artesanais
 INSERT INTO produtos (nome, descricao, preco, categoria, imagem_url) VALUES
 ('Bolo Red Velvet Nobre', 'Massa aveludada com toque de cacau, recheio generoso de cream cheese e frutas vermelhas frescas.', 89.90, 'bolos', 'https://images.unsplash.com/photo-1586788680434-30d324b2d46f?w=600&auto=format&fit=crop&q=80'),

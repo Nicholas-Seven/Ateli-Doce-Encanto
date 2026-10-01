@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { maskCPF, maskPhone } from '../utils/masks';
 import { UserRegistration } from '../types';
 import { ShieldCheck, UserCheck, Lock, Mail, Phone, FileText, User } from 'lucide-react';
+import { AuthenticatedUser, loginUser, registerUser } from '../services/api';
 
 interface AuthModalProps {
-  onLoginSuccess: (user: { nome: string; email: string }) => void;
-  currentUser: { nome: string; email: string } | null;
+  onLoginSuccess: (user: AuthenticatedUser) => void;
+  currentUser: AuthenticatedUser | null;
   onLogout: () => void;
   onNavigateToCatalog: () => void;
 }
@@ -30,6 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loginSenha, setLoginSenha] = useState('');
 
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Manipulador com Máscara de CPF (Padrão 3) e Limite (Padrão 1)
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +45,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setTelefone(maskPhone(raw));
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotification(null);
 
@@ -64,19 +66,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    // Sucesso no cadastro
-    onLoginSuccess({
-      nome: nome.trim(),
-      email: email.trim().toLowerCase()
-    });
-
-    setNotification({
-      type: 'success',
-      message: 'Cadastro realizado com sucesso.'
-    });
+    setIsSubmitting(true);
+    try {
+      const user = await registerUser({ nome: nome.trim(), email: email.trim(), cpf, telefone, senha });
+      onLoginSuccess(user);
+    } catch (error) {
+      setNotification({ type: 'error', message: error instanceof Error ? error.message : 'Não foi possível criar a conta.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotification(null);
 
@@ -89,15 +90,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    onLoginSuccess({
-      nome: loginEmail.split('@')[0],
-      email: loginEmail.trim().toLowerCase()
-    });
-
-    setNotification({
-      type: 'success',
-      message: '✅ Login efetuado com sucesso!'
-    });
+    setIsSubmitting(true);
+    try {
+      const user = await loginUser(loginEmail.trim(), loginSenha);
+      onLoginSuccess(user);
+    } catch (error) {
+      setNotification({ type: 'error', message: error instanceof Error ? error.message : 'Não foi possível entrar.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (currentUser) {
@@ -330,9 +331,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               id="btn-submit-cadastro"
               type="submit"
+              disabled={isSubmitting}
               className="w-full py-3.5 px-6 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg mt-4"
             >
-              Criar Minha Conta
+              {isSubmitting ? 'Criando conta...' : 'Criar Minha Conta'}
             </button>
           </form>
         ) : (
@@ -389,9 +391,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               id="btn-submit-login"
               type="submit"
+              disabled={isSubmitting}
               className="w-full py-3.5 px-6 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg mt-4"
             >
-              Entrar na Minha Conta
+              {isSubmitting ? 'Entrando...' : 'Entrar na Minha Conta'}
             </button>
           </form>
         )}

@@ -13,6 +13,10 @@ class OrderRepository:
         with get_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
+                    "SELECT set_config('app.user_id', %s, true)",
+                    (str(user_id),),
+                )
+                cursor.execute(
                     """
                     INSERT INTO pedidos (usuario_id, total)
                     VALUES (%s, %s)

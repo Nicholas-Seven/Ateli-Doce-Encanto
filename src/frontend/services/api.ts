@@ -31,6 +31,42 @@ export interface CheckoutResult {
   }[];
 }
 
+export interface AuthenticatedUser {
+  id: number;
+  nome: string;
+  email: string;
+  token: string;
+}
+
+async function submitAuthRequest(path: string, payload: Record<string, string>): Promise<AuthenticatedUser> {
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.erro || 'Não foi possível autenticar.');
+  }
+
+  return { ...data.usuario, token: data.token };
+}
+
+export function registerUser(payload: {
+  nome: string;
+  email: string;
+  cpf: string;
+  telefone: string;
+  senha: string;
+}): Promise<AuthenticatedUser> {
+  return submitAuthRequest('/auth/cadastro', payload);
+}
+
+export function loginUser(email: string, senha: string): Promise<AuthenticatedUser> {
+  return submitAuthRequest('/auth/login', { email, senha });
+}
+
 export async function fetchProducts(): Promise<CakeProduct[]> {
   const productUrl = `${API_URL}/api/products`;
   const response = await fetch(productUrl);
@@ -53,11 +89,14 @@ export async function fetchProducts(): Promise<CakeProduct[]> {
   }));
 }
 
-export async function checkoutOrder(cart: CartItem[], clientTotal: number): Promise<CheckoutResult> {
+export async function checkoutOrder(cart: CartItem[], clientTotal: number, token: string): Promise<CheckoutResult> {
   const checkoutUrl = `${API_URL}/api/pedidos/checkout`;
   const response = await fetch(checkoutUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
     body: JSON.stringify({
       itens: cart.map(item => ({
         product_id: item.produto.id,

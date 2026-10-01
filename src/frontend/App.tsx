@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CakeProduct, CartItem } from './types';
-import { fetchProducts } from './services/api';
+import { AuthenticatedUser, fetchProducts } from './services/api';
 import { Header } from './components/Header';
 import { CakeCatalog } from './components/CakeCatalog';
 import { AuthModal } from './components/AuthModal';
@@ -13,7 +13,7 @@ export default function App() {
   const [products, setProducts] = useState<CakeProduct[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<{ nome: string; email: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<AuthenticatedUser | null>(null);
 
   useEffect(() => {
     fetchProducts()
@@ -107,6 +107,7 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onClearCart={handleClearCart}
+        currentUser={currentUser}
       />
 
       {/* Rodapé da Doceria */}
