@@ -6,7 +6,7 @@ class User:
     """Modelo de domínio para Usuário (Cliente da Doceria)."""
     nome: str
     email: str
-    cpf: str
-    telefone: str
     senha_hash: str
+    cpf: Optional[str] = None
+    telefone: Optional[str] = None
     id: Optional[int] = None

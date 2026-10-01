@@ -25,7 +25,7 @@ class UserRepository:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT id, nome, email, cpf, telefone, senha_hash
+                    SELECT id, nome, email, senha_hash
                     FROM usuarios
                     WHERE email = %s
                     """,
@@ -40,7 +40,7 @@ class UserRepository:
                     id=row[0],
                     nome=row[1],
                     email=row[2],
-                    cpf=row[3],
-                    telefone=row[4],
-                    senha_hash=row[5],
+                    cpf="",
+                    telefone="",
+                    senha_hash=row[3],
                 )
