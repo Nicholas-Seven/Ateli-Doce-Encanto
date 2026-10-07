@@ -46,6 +46,47 @@ python -m src.backend.main
 
 O banco PostgreSQL continua sendo configurado separadamente usando `assets/schema.sql` e a variável `DATABASE_URL` do `.env`.
 
+## Banco de teste e papel da aplicação
+
+Antes de aplicar mudanças no banco publicado, use uma branch de teste do Neon e aponte apenas o backend local para a connection string dessa branch. Não compartilhe nem versione `DATABASE_URL`.
+
+Execute `assets/schema.sql` primeiro com o papel administrativo na branch de teste. O script cria as tabelas, políticas RLS, view `usuarios_mascarados`, gatilhos e produtos iniciais. Revise o destino selecionado no Neon antes de executar: o script inclui carga de produtos e recria as políticas RLS.
+
+Crie a credencial limitada pelo SQL Editor como administrador (não pelo botão Add role do Console, que no Neon associa papéis criados pelo Console a `neon_superuser`). Gere uma senha forte fora do chat e substitua o marcador abaixo localmente:
+
+```sql
+CREATE ROLE doceria_app
+WITH LOGIN
+PASSWORD 'SUBSTITUA_POR_UMA_SENHA_FORTE'
+NOSUPERUSER
+NOCREATEDB
+NOCREATEROLE
+NOBYPASSRLS
+NOINHERIT
+NOREPLICATION;
+
+GRANT USAGE ON SCHEMA public TO doceria_app;
+GRANT SELECT ON public.produtos TO doceria_app;
+
+GRANT SELECT (id, nome, email, senha_hash)
+ON public.usuarios TO doceria_app;
+GRANT INSERT (nome, email, cpf, telefone, senha_hash)
+ON public.usuarios TO doceria_app;
+GRANT USAGE ON SEQUENCE public.usuarios_id_seq TO doceria_app;
+GRANT SELECT ON public.usuarios_mascarados TO doceria_app;
+
+GRANT SELECT, INSERT ON public.pedidos TO doceria_app;
+GRANT USAGE ON SEQUENCE public.pedidos_id_seq TO doceria_app;
+GRANT INSERT ON public.itens_pedido TO doceria_app;
+GRANT USAGE ON SEQUENCE public.itens_pedido_id_seq TO doceria_app;
+```
+
+Execute o bloco somente se `doceria_app` ainda não existir. Se já existir, não repita `CREATE ROLE`: primeiro inspecione e remova privilégios não necessários antes de reutilizá-lo. A role precisa ter `rolsuper=false`, `rolbypassrls=false`, não ser proprietária das tabelas e não ter acesso de leitura às colunas originais `cpf` e `telefone`. O login consulta somente `id`, `nome`, `email` e `senha_hash`; para exibir dados pessoais, use a view mascarada.
+
+Os gatilhos de auditoria chamam `registrar_auditoria_alteracao()` como `SECURITY DEFINER`, com `search_path` fixo e tabela de destino qualificada. Assim, a aplicação não recebe permissão direta para inserir ou alterar linhas de auditoria. Não conceda privilégios na tabela nem na sequência `auditoria_alteracoes`.
+
+Configure a connection string desse papel apenas no ambiente do backend (local ou serviço de staging). O frontend hospedado no Vercel chama a URL pública do backend; não coloque credenciais do banco no frontend. Antes de usar o Vercel/Render em uma demonstração, confirme qual branch Git e qual `DATABASE_URL` cada serviço está usando. Não aponte produção para a branch temporária de teste.
+
 ## Demonstração do limite de requisições
 
 O backend permite cinco requisições por IP em uma janela de 60 segundos; a sexta recebe HTTP `429` e informa o padrão de Disponibilidade. O valor local é configurado por `RATE_LIMIT_REQUESTS_PER_MINUTE=5` no `.env`. Para produção, configure a mesma variável no ambiente/ painel do serviço que hospeda o backend.

@@ -11,6 +11,21 @@ CREATE TABLE IF NOT EXISTS usuarios (
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE OR REPLACE VIEW public.usuarios_mascarados AS
+SELECT
+    id,
+    CASE
+        WHEN NULLIF(regexp_replace(COALESCE(cpf, ''), '[^0-9]', '', 'g'), '') IS NULL THEN NULL
+        ELSE '***.***.***-' ||
+             RIGHT(regexp_replace(cpf, '[^0-9]', '', 'g'), 2)
+    END AS cpf_mascarado,
+    CASE
+        WHEN NULLIF(regexp_replace(COALESCE(telefone, ''), '[^0-9]', '', 'g'), '') IS NULL THEN NULL
+        ELSE '(**) *****-' ||
+             RIGHT(regexp_replace(telefone, '[^0-9]', '', 'g'), 4)
+    END AS telefone_mascarado
+FROM public.usuarios;
+
 CREATE TABLE IF NOT EXISTS produtos (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -78,6 +93,8 @@ CREATE TABLE IF NOT EXISTS auditoria_alteracoes (
 CREATE OR REPLACE FUNCTION registrar_auditoria_alteracao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog
 AS $$
 DECLARE
     registro_antigo JSONB;
@@ -104,7 +121,7 @@ BEGIN
     ) AS nomes_colunas
     WHERE registro_antigo -> coluna IS DISTINCT FROM registro_novo -> coluna;
 
-    INSERT INTO auditoria_alteracoes (tabela, registro_id, operacao, colunas_alteradas)
+    INSERT INTO public.auditoria_alteracoes (tabela, registro_id, operacao, colunas_alteradas)
     VALUES (TG_TABLE_NAME, id_registro, TG_OP, colunas);
 
     IF TG_OP = 'DELETE' THEN
@@ -113,6 +130,8 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.registrar_auditoria_alteracao() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS auditoria_usuarios ON usuarios;
 CREATE TRIGGER auditoria_usuarios
@@ -130,11 +149,18 @@ AFTER INSERT OR UPDATE OR DELETE ON itens_pedido
 FOR EACH ROW EXECUTE FUNCTION registrar_auditoria_alteracao();
 
 -- Carga inicial dos bolos artesanais
-INSERT INTO produtos (nome, descricao, preco, categoria, imagem_url) VALUES
-('Bolo Red Velvet Nobre', 'Massa aveludada com toque de cacau, recheio generoso de cream cheese e frutas vermelhas frescas.', 89.90, 'bolos', 'https://images.unsplash.com/photo-1586788680434-30d324b2d46f?w=600&auto=format&fit=crop&q=80'),
-('Bolo Trufado Belga', 'Massa de chocolate 70%, recheio cremoso de trufa belga e cobertura com raspas nobres.', 98.00, 'bolos', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80'),
-('Bolo de Cenoura com Vulcão de Brigadeiro', 'O clássico irresistível com massa fofinha e avalanche de brigadeiro gourmet 50%.', 65.00, 'bolos', 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=600&auto=format&fit=crop&q=80'),
-('Bolo Ninho com Morangos Frescos', 'Massa branca úmida, mousse suave de Leite Ninho e camadas de morangos selecionados.', 84.50, 'bolos', 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&auto=format&fit=crop&q=80'),
-('Bolo Pistache Supremo', 'Massa artesanal infusionada com pistache puro, ganache branca e praliné crocante.', 115.00, 'bolos', 'https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=600&auto=format&fit=crop&q=80'),
-('Bolo de Nozes com Doce de Leite', 'Pão de ló leve, recheio de doce de leite artesanal em ponto de bico e nozes chilenas.', 92.00, 'bolos', 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=600&auto=format&fit=crop&q=80')
-ON CONFLICT (nome) DO NOTHING;
+INSERT INTO produtos (nome, descricao, preco, categoria, imagem_url)
+SELECT dados.nome, dados.descricao, dados.preco, dados.categoria, dados.imagem_url
+FROM (VALUES
+    ('Bolo Red Velvet Nobre', 'Massa aveludada com toque de cacau, recheio generoso de cream cheese e frutas vermelhas frescas.', 89.90, 'bolos', 'https://images.unsplash.com/photo-1586788680434-30d324b2d46f?w=600&auto=format&fit=crop&q=80'),
+    ('Bolo Trufado Belga', 'Massa de chocolate 70%, recheio cremoso de trufa belga e cobertura com raspas nobres.', 98.00, 'bolos', 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80'),
+    ('Bolo de Cenoura com Vulcão de Brigadeiro', 'O clássico irresistível com massa fofinha e avalanche de brigadeiro gourmet 50%.', 65.00, 'bolos', 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=600&auto=format&fit=crop&q=80'),
+    ('Bolo Ninho com Morangos Frescos', 'Massa branca úmida, mousse suave de Leite Ninho e camadas de morangos selecionados.', 84.50, 'bolos', 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&auto=format&fit=crop&q=80'),
+    ('Bolo Pistache Supremo', 'Massa artesanal infusionada com pistache puro, ganache branca e praliné crocante.', 115.00, 'bolos', 'https://images.unsplash.com/photo-1535141192574-5d4897c13136?w=600&auto=format&fit=crop&q=80'),
+    ('Bolo de Nozes com Doce de Leite', 'Pão de ló leve, recheio de doce de leite artesanal em ponto de bico e nozes chilenas.', 92.00, 'bolos', 'https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=600&auto=format&fit=crop&q=80')
+) AS dados(nome, descricao, preco, categoria, imagem_url)
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM produtos existente
+    WHERE existente.nome = dados.nome
+);
